@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Encuesta Café FLEISCHMANN</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4fa; min-height: 100vh; padding-bottom: 60px;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: #003DA5; color: #fff;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 15px 28px; flex-wrap: wrap; gap: 10px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,.18);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 13px; }
+    .logo-ring {
+      height: 80px;
+      display: inline-flex; align-items: center;
+    }
+    .logo-ring img { height: 80px; width: auto; object-fit: contain; }
+    .topbar h1 { font-size: 1.05rem; font-weight: 700; }
+    .topbar p  { font-size: .76rem; opacity: .78; }
+    .topbar-right { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .topbar-right a { color: #fff; font-size: .8rem; opacity: .8; text-decoration: none; }
+    .topbar-right a:hover { opacity: 1; text-decoration: underline; }
+    #last-refresh { font-size: .73rem; opacity: .6; }
+
+    /* ── Login overlay ── */
+    #login-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.55);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999; padding: 16px;
+    }
+    .login-box {
+      background: #fff; border-radius: 16px;
+      padding: 40px 34px; width: 100%; max-width: 370px;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,.2);
+    }
+    .login-box .ic { font-size: 42px; margin-bottom: 10px; }
+    .login-box h2  { color: #003DA5; margin-bottom: 5px; font-size: 1.15rem; }
+    .login-box p   { color: #777; font-size: .83rem; margin-bottom: 20px; }
+    .login-box input {
+      width: 100%; border: 2px solid #d0d7e8; border-radius: 9px;
+      padding: 11px 14px; font-size: .93rem; outline: none;
+      margin-bottom: 13px; transition: border-color .15s; font-family: inherit;
+    }
+    .login-box input:focus { border-color: #003DA5; }
+    .login-box button {
+      width: 100%; background: #003DA5; color: #fff;
+      border: none; border-radius: 9px;
+      padding: 13px; font-size: .95rem; font-weight: 700;
+      cursor: pointer; transition: background .15s;
+    }
+    .login-box button:hover { background: #0050cc; }
+    .login-error { color: #d0021b; font-size: .82rem; margin-top: 8px; display: none; }
+
+    /* ── Loading ── */
+    #loading {
+      display: none; position: fixed; inset: 0;
+      background: rgba(255,255,255,.75);
+      align-items: center; justify-content: center;
+      z-index: 500; flex-direction: column; gap: 14px;
+      font-size: 1rem; color: #003DA5; font-weight: 600;
+    }
+    #loading.show { display: flex; }
+    .spin {
+      width: 34px; height: 34px;
+      border: 4px solid #d0d7e8; border-top-color: #003DA5;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Main ── */
+    #main { display: none; padding: 26px 22px; max-width: 1200px; margin: 0 auto; }
+
+    /* ── Stats ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+      gap: 13px; margin-bottom: 22px;
+    }
+    .stat-card {
+      background: #fff; border-radius: 12px; padding: 17px 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.07); border-left: 4px solid #003DA5;
+    }
+    .stat-card.green  { border-left-color: #27ae60; }
+    .stat-card.red    { border-left-color: #e74c3c; }
+    .stat-card.orange { border-left-color: #F5A623; }
+    .stat-num   { font-size: 1.85rem; font-weight: 800; color: #003DA5; line-height: 1; }
+    .stat-card.green  .stat-num { color: #27ae60; }
+    .stat-card.red    .stat-num { color: #e74c3c; }
+    .stat-card.orange .stat-num { color: #c77d00; }
+    .stat-label { font-size: .76rem; color: #777; margin-top: 4px; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 9px;
+      align-items: center; margin-bottom: 16px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 8px; padding: 8px 15px;
+      font-size: .84rem; font-weight: 700; cursor: pointer;
+      border: 2px solid transparent;
+      transition: background .15s, color .15s;
+      font-family: inherit;
+    }
+    .btn-primary { background: #003DA5; color: #fff; border-color: #003DA5; }
+    .btn-primary:hover { background: #0050cc; }
+    .btn-outline { background: #fff; color: #003DA5; border-color: #003DA5; }
+    .btn-outline:hover { background: #003DA5; color: #fff; }
+    .btn-danger  { background: #fff; color: #d0021b; border-color: #d0021b; }
+    .btn-danger:hover  { background: #d0021b; color: #fff; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .search-box {
+      border: 2px solid #d0d7e8; border-radius: 8px;
+      padding: 7px 12px; font-size: .86rem; outline: none;
+      transition: border-color .15s; min-width: 210px; font-family: inherit;
+    }
+    .search-box:focus { border-color: #003DA5; }
+
+    /* Filtro por zona */
+    .filter-zone {
+      border: 2px solid #d0d7e8; border-radius: 8px;
+      padding: 7px 12px; font-size: .86rem; outline: none;
+      background: #fff; cursor: pointer; font-family: inherit;
+      transition: border-color .15s;
+    }
+    .filter-zone:focus { border-color: #003DA5; }
+
+    .resp-count { font-size: .82rem; color: #666; margin-left: auto; }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto; border-radius: 12px;
+      box-shadow: 0 2px 14px rgba(0,0,0,.08);
+    }
+    table { width: 100%; border-collapse: collapse; background: #fff; font-size: .81rem; }
+    thead th {
+      background: #003DA5; color: #fff;
+      padding: 11px 11px; text-align: left;
+      white-space: nowrap; font-weight: 700;
+      cursor: pointer; user-select: none;
+    }
+    thead th:hover { background: #0050cc; }
+    .si { margin-left: 4px; opacity: .5; font-size: .7rem; }
+    tbody tr:nth-child(even) td { background: #f7f9fc; }
+    tbody tr:hover td { background: #eef2fb; }
+    td {
+      padding: 9px 11px; border-bottom: 1px solid #eaecf4;
+      vertical-align: top; max-width: 170px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    td.wrap { white-space: normal; }
+
+    .badge {
+      display: inline-block; padding: 2px 9px; border-radius: 20px;
+      font-size: .73rem; font-weight: 700;
+    }
+    .badge-si { background: #d4edda; color: #155724; }
+    .badge-no { background: #f8d7da; color: #721c24; }
+
+    .empty-state { text-align: center; padding: 52px 20px; color: #aaa; }
+    .empty-state .ic { font-size: 46px; display: block; margin-bottom: 12px; }
+
+    /* ── Detail modal ── */
+    #modal-bg {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 800;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    #modal-bg.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 14px;
+      padding: 30px 26px; width: 100%; max-width: 520px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18); position: relative;
+    }
+    .modal h3 { color: #003DA5; margin-bottom: 16px; font-size: 1.05rem; }
+    .modal-close {
+      position: absolute; top: 15px; right: 16px;
+      background: none; border: none; font-size: 1.25rem;
+      cursor: pointer; color: #888; line-height: 1;
+    }
+    .modal-close:hover { color: #003DA5; }
+    .detail-row {
+      display: flex; gap: 10px;
+      border-bottom: 1px solid #f0f2f7;
+      padding: 8px 0; font-size: .87rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-key { color: #888; min-width: 135px; flex-shrink: 0; }
+    .detail-val { color: #1a1a2e; font-weight: 500; word-break: break-word; }
+
+    @media(max-width:600px){
+      .topbar { padding: 13px 15px; }
+      #main   { padding: 16px 11px; }
+      td, thead th { padding: 7px 8px; font-size: .77rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading"><div class="spin"></div>Cargando respuestas...</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo-ring">
+      <img src="logo.png" alt="FLEISCHMANN" onerror="this.outerHTML='<span style=\'font-size:1.6rem\'>☕</span>'" />
+    </div>
+    <div>
+      <h1>Panel Admin – Encuesta Café</h1>
+      <p>FLEISCHMANN · Solo uso interno</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span id="last-refresh"></span>
+    <a href="encuesta.html">← Ir a encuesta</a>
+  </div>
+</div>
+
+<!-- Login -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="ic">🔒</div>
+    <h2>Acceso Administrador</h2>
+    <p>Ingresa la contraseña para ver todas las respuestas</p>
+    <input type="password" id="pass-input" placeholder="Contraseña"
+           onkeydown="if(event.key==='Enter') doLogin()" />
+    <button onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="login-error">Contraseña incorrecta.</div>
+  </div>
+</div>
+
+<!-- Main -->
+<div id="main">
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-total">—</div>
+      <div class="stat-label">Encuestas recibidas</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-num" id="stat-si">—</div>
+      <div class="stat-label">Clientes con café</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-num" id="stat-no">—</div>
+      <div class="stat-label">Clientes sin café</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-num" id="stat-asesores">—</div>
+      <div class="stat-label">Asesores activos</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="exportCSV()">⬇ Descargar CSV</button>
+    <button class="btn btn-outline" id="btn-refresh" onclick="loadData()">↺ Actualizar</button>
+    <button class="btn btn-danger"  onclick="clearData()">🗑 Borrar todo</button>
+
+    <select class="filter-zone" id="filter-zone" onchange="applyFilters()">
+      <option value="">Todas las zonas</option>
+      <option>FC01</option><option>FC03</option><option>FR07</option>
+      <option>FR08</option><option>FR09</option><option>FQ04</option>
+      <option>FQ06</option><option>FR10</option>
+    </select>
+
+    <input type="text" class="search-box" id="search-box"
+           placeholder="🔍 Asesor, cliente, marca..."
+           oninput="applyFilters()" />
+
+    <span class="resp-count" id="resp-count"></span>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortBy('id')"          >#<span class="si">↕</span></th>
+          <th onclick="sortBy('created_at')"  >Fecha<span class="si">↕</span></th>
+          <th onclick="sortBy('zona')"        >Zona<span class="si">↕</span></th>
+          <th onclick="sortBy('vendedor')"    >Asesor<span class="si">↕</span></th>
+          <th onclick="sortBy('maneja_cafe')" >Maneja café<span class="si">↕</span></th>
+          <th>Marcas</th>
+          <th>Presentación</th>
+          <th onclick="sortBy('precio_compra')">P. Compra<span class="si">↕</span></th>
+          <th onclick="sortBy('precio_venta')" >P. Venta<span class="si">↕</span></th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody id="admin-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modal-title">Detalle</h3>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://clfrwxgyhvowjsoxusxn.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZnJ3eGd5aHZvd2pzb3h1c3huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUxMjA2NTEsImV4cCI6MjExMDY5NjY1MX0.DG4VzLrHrpZcrgb3huluSRapFomTx7_RGObIxn9C_SA';
+  const PASSWORD = 'fleisch2026';
+
+  const ZONAS_MAP = {
+    FC01:'Juliana Andrea Duque Gonzales', FC03:'Jhonatan Zapata Arismendi',
+    FR07:'Jose Manuel Holguin Castano',  FR08:'Debany Alberto Marin Perez',
+    FR09:'Lina Marcela Arboleda',        FQ04:'Clara Ines Toro Martinez',
+    FQ06:'Yeimi Viviana Galvis Salazar',  FR10:'Vacante',
+  };
+
+  let allData  = [];
+  let filtered = [];
+  let sortKey  = 'id';
+  let sortAsc  = false;
+
+  /* ── Login ── */
+  function doLogin(){
+    if (document.getElementById('pass-input').value === PASSWORD){
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('main').style.display = 'block';
+      loadData();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('pass-input').value = '';
+      document.getElementById('pass-input').focus();
+    }
+  }
+
+  /* ── Fetch ── */
+  async function loadData(){
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('btn-refresh').disabled = true;
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/encuestas?select=*&order=id.desc`,
+        { headers:{ 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      allData = await res.json();
+      updateStats();
+      applyFilters();
+      document.getElementById('last-refresh').textContent =
+        'Actualizado ' + new Date().toLocaleTimeString('es-CO');
+    } catch(e){ alert('Error al cargar: ' + e.message); }
+    finally {
+      document.getElementById('loading').classList.remove('show');
+      document.getElementById('btn-refresh').disabled = false;
+    }
+  }
+
+  /* ── Stats ── */
+  function updateStats(){
+    const si = allData.filter(r => r.maneja_cafe === 'Sí').length;
+    const no = allData.filter(r => r.maneja_cafe === 'No').length;
+    const asesores = new Set(allData.map(r => (r.zona||'').toUpperCase())).size;
+    document.getElementById('stat-total').textContent    = allData.length;
+    document.getElementById('stat-si').textContent       = si;
+    document.getElementById('stat-no').textContent       = no;
+    document.getElementById('stat-asesores').textContent = asesores;
+  }
+
+  /* ── Filters ── */
+  function applyFilters(){
+    const q    = (document.getElementById('search-box').value  || '').toLowerCase();
+    const zona = (document.getElementById('filter-zone').value || '').toUpperCase();
+    filtered = allData.filter(r => {
+      const matchZona = !zona || (r.zona||'').toUpperCase() === zona;
+      const matchQ    = !q   || [r.vendedor, r.zona, r.cliente, r.marcas,
+                                  r.presentacion, r.maneja_cafe]
+                                  .join(' ').toLowerCase().includes(q);
+      return matchZona && matchQ;
+    });
+    applySortToFiltered();
+    renderTable();
+  }
+
+  /* ── Sort ── */
+  function sortBy(key){
+    sortKey = key; sortAsc = (sortKey === key) ? !sortAsc : true;
+    // recalibrate: always toggle same key
+    applySortToFiltered(); renderTable();
+  }
+  function applySortToFiltered(){
+    filtered.sort((a,b)=>{
+      let va = a[sortKey] ?? '', vb = b[sortKey] ?? '';
+      if (!isNaN(parseFloat(va)) && !isNaN(parseFloat(vb))){ va=parseFloat(va); vb=parseFloat(vb); }
+      if (va<vb) return sortAsc?-1:1;
+      if (va>vb) return sortAsc?1:-1;
+      return 0;
+    });
+  }
+
+  /* ── Render ── */
+  function renderTable(){
+    const tbody = document.getElementById('admin-tbody');
+    document.getElementById('resp-count').textContent =
+      `Mostrando ${filtered.length} de ${allData.length} respuesta(s)`;
+
+    if (!filtered.length){
+      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">
+        <span class="ic">📋</span>
+        ${allData.length ? 'Sin resultados para ese filtro.' : 'No hay respuestas aún.'}
+      </div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(r => {
+      const fecha = r.created_at
+        ? new Date(r.created_at).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})
+        : '—';
+      const pc = r.precio_compra ? '$'+Number(r.precio_compra).toLocaleString('es-CO') : '—';
+      const pv = r.precio_venta  ? '$'+Number(r.precio_venta).toLocaleString('es-CO')  : '—';
+      return `<tr>
+        <td>${r.id}</td>
+        <td>${fecha}</td>
+        <td><strong>${esc(r.zona||'—')}</strong></td>
+        <td>${esc(r.vendedor||'—')}</td>
+        <td><span class="badge ${r.maneja_cafe==='Sí'?'badge-si':'badge-no'}">${r.maneja_cafe}</span></td>
+        <td class="wrap">${esc(r.marcas||'—')}</td>
+        <td class="wrap">${esc(r.presentacion||'—')}</td>
+        <td>${pc}</td>
+        <td>${pv}</td>
+        <td><button class="btn btn-outline"
+              style="padding:4px 10px;font-size:.76rem"
+              onclick="showDetail(${r.id})">Ver</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function esc(s){
+    return String(s||'')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* ── Detail modal ── */
+  function showDetail(id){
+    const r = allData.find(x=>x.id===id); if(!r) return;
+    const fecha = r.created_at
+      ? new Date(r.created_at).toLocaleString('es-CO',{dateStyle:'long',timeStyle:'short'})
+      : '—';
+    document.getElementById('modal-title').textContent = `Respuesta #${r.id} · ${r.zona} · ${r.vendedor}`;
+    const fields = [
+      ['Fecha',           fecha],
+      ['Zona',            r.zona          || '—'],
+      ['Asesor',          r.vendedor      || '—'],
+      ['¿Maneja café?',   r.maneja_cafe],
+      ['Marcas',          r.marcas        || '—'],
+      ['Presentación',    r.presentacion  || '—'],
+      ['Precio compra',   r.precio_compra ? '$'+Number(r.precio_compra).toLocaleString('es-CO') : '—'],
+      ['Precio venta',    r.precio_venta  ? '$'+Number(r.precio_venta).toLocaleString('es-CO')  : '—'],
+      ['Obs. precio',     r.obs_precios   || '—'],
+    ];
+    document.getElementById('modal-body').innerHTML = fields.map(([k,v])=>`
+      <div class="detail-row">
+        <span class="detail-key">${k}</span>
+        <span class="detail-val">${esc(v)}</span>
+      </div>`).join('');
+    document.getElementById('modal-bg').classList.add('open');
+  }
+  function closeModal(e){
+    if(!e || e.target===document.getElementById('modal-bg'))
+      document.getElementById('modal-bg').classList.remove('open');
+  }
+
+  /* ── CSV ── */
+  function exportCSV(){
+    if(!allData.length){ alert('No hay respuestas aún.'); return; }
+    const h = ['ID','Fecha','Zona','Asesor','Maneja café',
+               'Marcas','Presentación','Precio Compra','Precio Venta','Obs. Precio'];
+    const rows = allData.map(r=>{
+      const f = r.created_at ? new Date(r.created_at).toLocaleString('es-CO') : '';
+      return [r.id,f,r.zona,r.vendedor,r.maneja_cafe,
+              r.marcas,r.presentacion,r.precio_compra,r.precio_venta,r.obs_precios]
+        .map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',');
+    });
+    const csv  = '\uFEFF' + [h.join(','),...rows].join('\r\n');
+    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url  = URL.createObjectURL(blob);
+    Object.assign(document.createElement('a'),{
+      href:url,
+      download:`fleischmann_cafe_${new Date().toISOString().slice(0,10)}.csv`
+    }).click();
+    URL.revokeObjectURL(url);
+  }
+
+  /* ── Clear ── */
+  async function clearData(){
+    if(!confirm('¿Borrar TODAS las respuestas? No se puede deshacer.')) return;
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/encuestas?id=gte.0`,{
+        method:'DELETE',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
+      });
+      if(!res.ok) throw new Error(await res.text());
+      await loadData();
+      alert('Datos borrados.');
+    }catch(e){ alert('Error: '+e.message); }
+  }
+
+  window.addEventListener('load', ()=> document.getElementById('pass-input').focus());
+</script>
+</body>
+</html>

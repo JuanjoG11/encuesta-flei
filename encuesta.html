@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encuesta de Café – FLEISCHMANN</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4fa;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 24px 16px 56px;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%; max-width: 540px;
+      background: #003DA5;
+      border-radius: 16px 16px 0 0;
+      padding: 26px 28px 20px;
+      text-align: center; color: #fff;
+    }
+    .logo-ring {
+      width: 68px; height: 68px;
+      background: #F5A623; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 28px; margin-bottom: 10px;
+      border: 4px solid #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; }
+    header p  { font-size: .83rem; opacity: .82; margin-top: 3px; }
+
+    /* ── Card ── */
+    .card {
+      width: 100%; max-width: 540px;
+      background: #fff;
+      border-radius: 0 0 16px 16px;
+      padding: 28px 24px 36px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.09);
+    }
+
+    /* ── Login screen ── */
+    #screen-login { display: block; }
+    #screen-form  { display: none; }
+    #screen-thanks{ display: none; }
+
+    .login-title {
+      font-size: 1rem; font-weight: 700; color: #003DA5;
+      margin-bottom: 6px;
+    }
+    .login-sub {
+      font-size: .83rem; color: #777; margin-bottom: 22px;
+    }
+
+    .zone-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-bottom: 20px;
+    }
+    @media(max-width:380px){ .zone-grid { grid-template-columns: 1fr; } }
+
+    .zone-btn {
+      background: #f7f9fc;
+      border: 2px solid #dde3ef;
+      border-radius: 10px;
+      padding: 12px 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color .15s, background .15s, transform .1s;
+    }
+    .zone-btn:hover { border-color: #003DA5; background: #eef2fb; }
+    .zone-btn.selected { border-color: #003DA5; background: #eef2fb; }
+    .zone-btn .z-code {
+      font-size: .78rem; font-weight: 700;
+      color: #F5A623; letter-spacing: .5px;
+    }
+    .zone-btn .z-name {
+      font-size: .82rem; font-weight: 600; color: #1a1a2e;
+      margin-top: 3px; line-height: 1.3;
+    }
+
+    .btn-ingresar {
+      width: 100%;
+      background: #003DA5; color: #fff;
+      border: none; border-radius: 11px;
+      padding: 14px; font-size: .97rem; font-weight: 700;
+      cursor: pointer; transition: background .15s, opacity .15s;
+    }
+    .btn-ingresar:hover    { background: #0050cc; }
+    .btn-ingresar:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Greeting bar ── */
+    .greet-bar {
+      background: #eef2fb;
+      border-radius: 9px;
+      padding: 11px 14px;
+      margin-bottom: 22px;
+      font-size: .88rem; color: #003DA5; font-weight: 600;
+    }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: .7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.1px;
+      color: #003DA5; border-bottom: 2px solid #003DA5;
+      padding-bottom: 4px; margin-bottom: 16px;
+    }
+
+    /* ── Fields ── */
+    .field { margin-bottom: 20px; }
+    label.field-label {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 600; color: #1a1a2e;
+      margin-bottom: 9px; font-size: .93rem;
+    }
+    .num {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #F5A623; color: #fff;
+      border-radius: 50%; width: 22px; height: 22px;
+      font-size: .73rem; font-weight: 700; flex-shrink: 0;
+    }
+
+    .options { display: flex; flex-direction: column; gap: 7px; }
+    .options label {
+      display: flex; align-items: center; gap: 10px;
+      background: #f7f9fc; border: 2px solid #dde3ef;
+      border-radius: 9px; padding: 10px 14px;
+      cursor: pointer; font-size: .91rem;
+      transition: border-color .15s, background .15s;
+      user-select: none;
+    }
+    .options label:hover    { border-color: #003DA5; background: #eef2fb; }
+    .options label.selected { border-color: #003DA5; background: #eef2fb; }
+    .options input[type="radio"],
+    .options input[type="checkbox"] {
+      accent-color: #003DA5; width: 17px; height: 17px; flex-shrink: 0;
+    }
+
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      border: 2px solid #d0d7e8; border-radius: 9px;
+      padding: 10px 13px; font-size: .91rem; color: #1a1a2e;
+      background: #f7f9fc; outline: none;
+      transition: border-color .15s, background .15s;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus { border-color: #003DA5; background: #fff; }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media(max-width:420px){ .row-2 { grid-template-columns: 1fr; } }
+    .sublabel { font-size: .79rem; color: #666; display: block; margin-bottom: 5px; }
+
+    /* ── Submit ── */
+    .btn-submit {
+      width: 100%;
+      background: #003DA5; color: #fff;
+      border: none; border-radius: 11px;
+      padding: 15px; font-size: .97rem; font-weight: 700;
+      cursor: pointer; transition: background .15s, transform .1s, opacity .15s;
+      margin-top: 6px;
+    }
+    .btn-submit:hover    { background: #0050cc; }
+    .btn-submit:active   { transform: scale(.98); }
+    .btn-submit:disabled { opacity: .55; cursor: not-allowed; }
+
+    .spinner {
+      display: none; width: 20px; height: 20px;
+      border: 3px solid rgba(255,255,255,.4);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin .7s linear infinite; margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    .error-msg {
+      display: none;
+      background: #fde8e8; border: 1.5px solid #e74c3c;
+      border-radius: 9px; padding: 11px 14px;
+      font-size: .86rem; color: #c0392b; margin-bottom: 14px;
+    }
+
+    /* ── No-cafe note ── */
+    .info-note {
+      background: #fff8e1; border: 1.5px solid #F5A623;
+      border-radius: 9px; padding: 12px 14px;
+      font-size: .86rem; color: #7a5c00; margin-bottom: 18px;
+      display: none;
+    }
+
+    /* ── Thank-you ── */
+    #screen-thanks {
+      width: 100%; max-width: 540px;
+      background: #fff; border-radius: 16px;
+      padding: 52px 28px; text-align: center;
+      box-shadow: 0 6px 24px rgba(0,0,0,.09);
+    }
+    #screen-thanks .ic { font-size: 56px; }
+    #screen-thanks h2  { color: #003DA5; margin: 14px 0 8px; font-size: 1.3rem; }
+    #screen-thanks p   { color: #555; font-size: .91rem; line-height: 1.55; }
+    .btn-nueva {
+      margin-top: 22px; display: inline-block;
+      background: #F5A623; color: #fff;
+      border: none; border-radius: 9px;
+      padding: 11px 26px; font-size: .93rem; font-weight: 700;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-nueva:hover { background: #d48f10; }
+
+    /* hidden */
+    #q2-block, #q3-block, #q4-block { display: none; }
+  </style>
+</head>
+<body>
+
+<header id="main-header">
+  <img src="logo.png" alt="FLEISCHMANN"
+       style="height:140px;width:auto;object-fit:contain;margin-bottom:12px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3))"
+       onerror="this.style.display='none'" />
+  <h1>Encuesta de Café</h1>
+  <p>FLEISCHMANN – Relevamiento de mercado</p>
+</header>
+
+<!-- ══════════════════════════════════
+     SCREEN 1 · LOGIN POR ZONA
+══════════════════════════════════ -->
+<div class="card" id="screen-login">
+  <p class="login-title">Selecciona tu zona</p>
+  <p class="login-sub">Toca tu zona para ingresar a la encuesta</p>
+
+  <div class="zone-grid" id="zone-grid">
+    <!-- generado por JS -->
+  </div>
+
+  <div class="error-msg" id="login-error">Por favor selecciona tu zona.</div>
+
+  <button class="btn-ingresar" id="btn-ingresar" onclick="doLogin()">
+    Ingresar →
+  </button>
+</div>
+
+<!-- ══════════════════════════════════
+     SCREEN 2 · FORMULARIO
+══════════════════════════════════ -->
+<div class="card" id="screen-form">
+
+  <div class="greet-bar" id="greet-bar">👋 Hola, <strong id="greet-name"></strong></div>
+
+  <p class="section-title">Preguntas de café</p>
+
+  <!-- P1 -->
+  <div class="field">
+    <label class="field-label">
+      <span class="num">1</span>¿El cliente maneja café?
+    </label>
+    <div class="options" id="q1-opts">
+      <label><input type="radio" name="q1" value="Sí"  /> Sí, maneja café</label>
+      <label><input type="radio" name="q1" value="No" /> No maneja café</label>
+    </div>
+  </div>
+
+  <!-- Aviso si no vende -->
+  <div class="info-note" id="no-cafe-note">
+    ℹ️ Este cliente no maneja café. Se registrará la visita y finalizará la encuesta.
+  </div>
+
+  <!-- P2 -->
+  <div id="q2-block" class="field">
+    <label class="field-label">
+      <span class="num">2</span>¿Qué marca(s) de café maneja?
+      <small style="font-weight:400;color:#888;font-size:.77rem">(puede marcar varias)</small>
+    </label>
+    <div class="options">
+      <label><input type="checkbox" name="q2" value="Sello Rojo" /> Sello Rojo</label>
+      <label><input type="checkbox" name="q2" value="Nescafé"    /> Nescafé</label>
+      <label><input type="checkbox" name="q2" value="Águila"     /> Águila</label>
+      <label><input type="checkbox" name="q2" value="Tostao"     /> Tostao</label>
+      <label><input type="checkbox" name="q2" value="Colcafé"    /> Colcafé</label>
+      <label><input type="checkbox" name="q2" value="Otro" id="q2-otro-chk" /> Otro</label>
+    </div>
+    <input type="text" id="q2-otro-txt" placeholder="Especifica la marca"
+           style="margin-top:8px;display:none" />
+  </div>
+
+  <!-- P3 -->
+  <div id="q3-block" class="field">
+    <label class="field-label">
+      <span class="num">3</span>¿Qué presentación compra el cliente?
+      <small style="font-weight:400;color:#888;font-size:.77rem">(puede marcar varias)</small>
+    </label>
+    <div class="options">
+      <label><input type="checkbox" name="q3" value="50 g"  /> 50 g</label>
+      <label><input type="checkbox" name="q3" value="100 g" /> 100 g</label>
+      <label><input type="checkbox" name="q3" value="200 g" /> 200 g</label>
+      <label><input type="checkbox" name="q3" value="250 g" /> 250 g</label>
+      <label><input type="checkbox" name="q3" value="500 g" /> 500 g</label>
+      <label><input type="checkbox" name="q3" value="1 kg"  /> 1 kg</label>
+      <label><input type="checkbox" name="q3" value="Otro" id="q3-otro-chk" /> Otro</label>
+    </div>
+    <input type="text" id="q3-otro-txt" placeholder="Especifica el gramaje"
+           style="margin-top:8px;display:none" />
+  </div>
+
+  <!-- P4 -->
+  <div id="q4-block" class="field">
+    <label class="field-label">
+      <span class="num">4</span>Precio del café
+    </label>
+    <div class="row-2" style="margin-bottom:10px">
+      <div>
+        <span class="sublabel">Precio de compra ($/unidad)</span>
+        <input type="number" id="precio-compra" placeholder="Ej. 8500" min="0" />
+      </div>
+      <div>
+        <span class="sublabel">Precio de venta al público</span>
+        <input type="number" id="precio-venta" placeholder="Ej. 11000" min="0" />
+      </div>
+    </div>
+    <span class="sublabel">Observaciones sobre precio</span>
+    <textarea id="precio-obs" rows="2"
+              placeholder="Condiciones de pago, promociones, descuentos..."></textarea>
+  </div>
+
+  <div class="error-msg" id="form-error"></div>
+
+  <button class="btn-submit" id="btn-submit" type="button" onclick="submitForm()">
+    <span id="btn-text">Enviar encuesta ✓</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+</div>
+
+<!-- ══════════════════════════════════
+     SCREEN 3 · GRACIAS
+══════════════════════════════════ -->
+<div id="screen-thanks">
+  <div class="ic">✅</div>
+  <h2 id="thanks-title">¡Encuesta enviada!</h2>
+  <p id="thanks-msg">Tu respuesta fue guardada correctamente.<br>
+     El equipo de FLEISCHMANN la revisará para definir el precio final.</p>
+  <button class="btn-nueva" onclick="nuevaEncuesta()">+ Registrar otro cliente</button>
+</div>
+
+<script>
+  /* ════════════════════════════════
+     CONFIGURACIÓN
+  ════════════════════════════════ */
+  const SUPABASE_URL = 'https://clfrwxgyhvowjsoxusxn.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZnJ3eGd5aHZvd2pzb3h1c3huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUxMjA2NTEsImV4cCI6MjExMDY5NjY1MX0.DG4VzLrHrpZcrgb3huluSRapFomTx7_RGObIxn9C_SA';
+
+  /* Zonas y vendedores */
+  const ZONAS = [
+    { codigo: 'FC01', vendedor: 'Juliana Andrea Duque Gonzales'  },
+    { codigo: 'FC03', vendedor: 'Jhonatan Zapata Arismendi'      },
+    { codigo: 'FR07', vendedor: 'Jose Manuel Holguin Castano'    },
+    { codigo: 'FR08', vendedor: 'Debany Alberto Marin Perez'     },
+    { codigo: 'FR09', vendedor: 'Lina Marcela Arboleda'          },
+    { codigo: 'FQ04', vendedor: 'Clara Ines Toro Martinez'       },
+    { codigo: 'FQ06', vendedor: 'Yeimi Viviana Galvis Salazar'   },
+    { codigo: 'FR10', vendedor: 'Vacante'                        },
+  ];
+
+  /* Estado */
+  let zonaSeleccionada = null;
+
+  /* ════════════════════════════════
+     LOGIN – generar botones de zona
+  ════════════════════════════════ */
+  (function buildZoneGrid(){
+    const grid = document.getElementById('zone-grid');
+    ZONAS.forEach(z => {
+      const btn = document.createElement('div');
+      btn.className = 'zone-btn';
+      btn.dataset.codigo = z.codigo;
+      btn.innerHTML = `<div class="z-code">${z.codigo}</div>
+                       <div class="z-name">${z.vendedor}</div>`;
+      btn.addEventListener('click', () => selectZone(z.codigo));
+      grid.appendChild(btn);
+    });
+  })();
+
+  function selectZone(codigo){
+    zonaSeleccionada = codigo;
+    document.querySelectorAll('.zone-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.codigo === codigo);
+    });
+    document.getElementById('login-error').style.display = 'none';
+  }
+
+  function doLogin(){
+    if (!zonaSeleccionada){
+      document.getElementById('login-error').style.display = 'block';
+      return;
+    }
+    const zona = ZONAS.find(z => z.codigo === zonaSeleccionada);
+    document.getElementById('greet-name').textContent = zona.vendedor.split(' ')[0];
+
+    show('screen-form');
+    hide('screen-login');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  /* ════════════════════════════════
+     LÓGICA DE PREGUNTAS
+  ════════════════════════════════ */
+  document.querySelectorAll('input[name="q1"]').forEach(r => {
+    r.addEventListener('change', function(){
+      const si = this.value === 'Sí';
+      showEl('q2-block',    si);
+      showEl('q3-block',    si);
+      showEl('q4-block',    si);
+      showEl('no-cafe-note', !si);
+      /* Actualiza visual */
+      document.querySelectorAll('#q1-opts label').forEach(l => {
+        l.classList.toggle('selected', l.querySelector('input').checked);
+      });
+    });
+  });
+
+  document.getElementById('q2-otro-chk').addEventListener('change', function(){
+    document.getElementById('q2-otro-txt').style.display = this.checked ? 'block' : 'none';
+  });
+  document.getElementById('q3-otro-chk').addEventListener('change', function(){
+    document.getElementById('q3-otro-txt').style.display = this.checked ? 'block' : 'none';
+  });
+
+  /* Visual selected para checkboxes */
+  document.querySelectorAll('.options').forEach(group => {
+    group.addEventListener('change', () => {
+      group.querySelectorAll('label').forEach(lbl => {
+        const inp = lbl.querySelector('input');
+        if (inp) lbl.classList.toggle('selected', inp.checked);
+      });
+    });
+  });
+
+  function getChecked(name){
+    return [...document.querySelectorAll(`input[name="${name}"]:checked`)]
+           .map(el => el.value).join(', ');
+  }
+
+  /* ════════════════════════════════
+     SUBMIT
+  ════════════════════════════════ */
+  async function submitForm(){
+    const errEl  = document.getElementById('form-error');
+    errEl.style.display = 'none';
+
+    const q1sel = document.querySelector('input[name="q1"]:checked');
+
+    if (!q1sel) { showFormError('Por favor indica si el cliente maneja café.'); return; }
+
+    const manejaCAFE = q1sel.value;
+
+    /* Si NO vende café: validación mínima, encuesta corta */
+    if (manejaCAFE === 'No'){
+      await enviarASupabase({
+        vendedor:      getVendedor(),
+        zona:          zonaSeleccionada,
+        maneja_cafe:   'No',
+        marcas:        null,
+        presentacion:  null,
+        precio_compra: null,
+        precio_venta:  null,
+        obs_precios:   null,
+      });
+      mostrarGracias(false);
+      return;
+    }
+
+    /* Si SÍ vende café: validar campos adicionales */
+    let marcas = getChecked('q2');
+    if (document.getElementById('q2-otro-chk').checked){
+      const t = document.getElementById('q2-otro-txt').value.trim();
+      if (t) marcas = marcas.replace('Otro', t);
+    }
+
+    let presentacion = getChecked('q3');
+    if (document.getElementById('q3-otro-chk').checked){
+      const t = document.getElementById('q3-otro-txt').value.trim();
+      if (t) presentacion = presentacion.replace('Otro', t);
+    }
+
+    if (!marcas)      { showFormError('Por favor selecciona al menos una marca de café.'); return; }
+    if (!presentacion){ showFormError('Por favor selecciona al menos una presentación.'); return; }
+
+    await enviarASupabase({
+      vendedor:      getVendedor(),
+      zona:          zonaSeleccionada,
+      maneja_cafe:   'Sí',
+      marcas:        marcas        || null,
+      presentacion:  presentacion  || null,
+      precio_compra: document.getElementById('precio-compra').value || null,
+      precio_venta:  document.getElementById('precio-venta').value  || null,
+      obs_precios:   document.getElementById('precio-obs').value.trim() || null,
+    });
+    mostrarGracias(true);
+  }
+
+  async function enviarASupabase(payload){
+    setLoading(true);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/encuestas`, {
+        method:  'POST',
+        headers: {
+          'apikey':        SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type':  'application/json',
+          'Prefer':        'return=minimal',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(await res.text());
+    } catch(err){
+      showFormError('❌ Error al guardar. Verifica tu conexión e intenta de nuevo.');
+      console.error(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function mostrarGracias(vendeCafe){
+    if (vendeCafe){
+      document.getElementById('thanks-title').textContent = '¡Encuesta enviada!';
+      document.getElementById('thanks-msg').innerHTML =
+        'Tu respuesta fue guardada correctamente.<br>El equipo de FLEISCHMANN la revisará para definir el precio final.';
+    } else {
+      document.getElementById('thanks-title').textContent = 'Visita registrada';
+      document.getElementById('thanks-msg').innerHTML =
+        'Se registró que este cliente no maneja café.<br>¡Gracias por la información!';
+    }
+    hide('screen-form');
+    hide('main-header');
+    show('screen-thanks');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  /* ════════════════════════════════
+     NUEVA ENCUESTA (mismo asesor)
+  ════════════════════════════════ */
+  function nuevaEncuesta(){
+    document.getElementById('precio-compra').value = '';
+    document.getElementById('precio-venta').value  = '';
+    document.getElementById('precio-obs').value    = '';
+    document.querySelectorAll('input[name="q1"]').forEach(r => r.checked = false);
+    document.querySelectorAll('input[name="q2"]').forEach(r => r.checked = false);
+    document.querySelectorAll('input[name="q3"]').forEach(r => r.checked = false);
+    document.getElementById('q2-otro-txt').style.display  = 'none';
+    document.getElementById('q3-otro-txt').style.display  = 'none';
+    document.getElementById('q2-otro-txt').value = '';
+    document.getElementById('q3-otro-txt').value = '';
+    showEl('q2-block',     false);
+    showEl('q3-block',     false);
+    showEl('q4-block',     false);
+    showEl('no-cafe-note', false);
+    document.querySelectorAll('.options label').forEach(l => l.classList.remove('selected'));
+    document.getElementById('form-error').style.display = 'none';
+
+    show('main-header');
+    show('screen-form');
+    hide('screen-thanks');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  /* ════════════════════════════════
+     HELPERS
+  ════════════════════════════════ */
+  function getVendedor(){
+    return (ZONAS.find(z => z.codigo === zonaSeleccionada) || {}).vendedor || '';
+  }
+  function show(id){ document.getElementById(id).style.display = 'block'; }
+  function hide(id){ document.getElementById(id).style.display = 'none';  }
+  function showEl(id, visible){ document.getElementById(id).style.display = visible ? 'block' : 'none'; }
+  function showFormError(msg){
+    const el = document.getElementById('form-error');
+    el.textContent = msg; el.style.display = 'block';
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  function setLoading(on){
+    document.getElementById('btn-submit').disabled = on;
+    document.getElementById('btn-text').style.display  = on ? 'none'  : 'inline';
+    document.getElementById('spinner').style.display   = on ? 'block' : 'none';
+  }
+</script>
+</body>
+</html>
