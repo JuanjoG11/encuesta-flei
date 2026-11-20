@@ -293,12 +293,9 @@
       <small style="font-weight:400;color:#888;font-size:.77rem">(puede marcar varias)</small>
     </label>
     <div class="options">
-      <label><input type="checkbox" name="q3" value="50 g"  /> 50 g</label>
-      <label><input type="checkbox" name="q3" value="100 g" /> 100 g</label>
-      <label><input type="checkbox" name="q3" value="200 g" /> 200 g</label>
-      <label><input type="checkbox" name="q3" value="250 g" /> 250 g</label>
-      <label><input type="checkbox" name="q3" value="500 g" /> 500 g</label>
-      <label><input type="checkbox" name="q3" value="1 kg"  /> 1 kg</label>
+      <label><input type="checkbox" name="q3" value="125 g"   /> 125 g</label>
+      <label><input type="checkbox" name="q3" value="454 g"   /> 454 g</label>
+      <label><input type="checkbox" name="q3" value="2500 g"  /> 2500 g</label>
       <label><input type="checkbox" name="q3" value="Otro" id="q3-otro-chk" /> Otro</label>
     </div>
     <input type="text" id="q3-otro-txt" placeholder="Especifica el gramaje"
@@ -310,15 +307,9 @@
     <label class="field-label">
       <span class="num">4</span>Precio del café
     </label>
-    <div class="row-2" style="margin-bottom:10px">
-      <div>
-        <span class="sublabel">Precio de compra ($/unidad)</span>
-        <input type="number" id="precio-compra" placeholder="Ej. 8500" min="0" />
-      </div>
-      <div>
-        <span class="sublabel">Precio de venta al público</span>
-        <input type="number" id="precio-venta" placeholder="Ej. 11000" min="0" />
-      </div>
+    <div style="margin-bottom:10px">
+      <span class="sublabel">Precio de compra ($/unidad)</span>
+      <input type="number" id="precio-compra" placeholder="Ej. 8500" min="0" />
     </div>
     <span class="sublabel">Observaciones sobre precio</span>
     <textarea id="precio-obs" rows="2"
@@ -464,7 +455,6 @@
         marcas:        null,
         presentacion:  null,
         precio_compra: null,
-        precio_venta:  null,
         obs_precios:   null,
       });
       mostrarGracias(false);
@@ -494,7 +484,6 @@
       marcas:        marcas        || null,
       presentacion:  presentacion  || null,
       precio_compra: document.getElementById('precio-compra').value || null,
-      precio_venta:  document.getElementById('precio-venta').value  || null,
       obs_precios:   document.getElementById('precio-obs').value.trim() || null,
     });
     mostrarGracias(true);
@@ -544,7 +533,6 @@
   ════════════════════════════════ */
   function nuevaEncuesta(){
     document.getElementById('precio-compra').value = '';
-    document.getElementById('precio-venta').value  = '';
     document.getElementById('precio-obs').value    = '';
     document.querySelectorAll('input[name="q1"]').forEach(r => r.checked = false);
     document.querySelectorAll('input[name="q2"]').forEach(r => r.checked = false);
