@@ -449,6 +449,7 @@
     /* Si NO vende café: validación mínima, encuesta corta */
     if (manejaCAFE === 'No'){
       await enviarASupabase({
+        cliente:       '-',
         vendedor:      getVendedor(),
         zona:          zonaSeleccionada,
         maneja_cafe:   'No',
@@ -478,6 +479,7 @@
     if (!presentacion){ showFormError('Por favor selecciona al menos una presentación.'); return; }
 
     await enviarASupabase({
+      cliente:       '-',
       vendedor:      getVendedor(),
       zona:          zonaSeleccionada,
       maneja_cafe:   'Sí',
